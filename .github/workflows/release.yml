@@ -20,29 +20,31 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v2.4.0
-      -
-        name: Unshallow
-        run: git fetch --prune --unshallow
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       -
         name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.17
+          go-version: 1.21
       -
         name: Import GPG key
         id: import_gpg
-        uses: hashicorp/ghaction-import-gpg@v2.1.0
-        env:
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
           # These secrets will need to be configured for the repository:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          PASSPHRASE: ${{ secrets.PASSPHRASE }}
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          fingerprint: ${{ secrets.FINGERPRINT }}
+      - name: List keys
+        run: gpg -K
       -
         name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2.8.1
+        uses: goreleaser/goreleaser-action@v5
         with:
-          version: v1.5.0
-          args: release --rm-dist
+          version: latest
+          args: release --clean
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           # GitHub sets this automatically
